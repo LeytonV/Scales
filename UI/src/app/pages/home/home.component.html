@@ -1,0 +1,60 @@
+<app-navbar (onClickSettings)="openSettings()"></app-navbar>
+
+<div class="mainContainer">
+    @if(!this.isLoggedin)
+    {
+        <div class="loginScreen">
+            <div class="loginContainer">
+                <p class="loginPrompt">Log in to start tracking</p>
+                <input [(ngModel)]="emailAddress" type="email" name="" id="" placeholder="email">
+                <input [(ngModel)]="password" type="password" name="" id="" placeholder="password">
+                <div class="loginButtons">
+                    <button (click)="onClickLogin()">Login</button>
+                    <button (click)="onClickRegister()">Register</button>
+                </div>
+            </div>
+        </div>
+    }
+    @else
+    {
+        <div class="dayNavigator">
+            <div class="dayNavHoverArea left">
+                <button class="dayNavButton" (click)="previousDay()"><p><</p></button>
+            </div>
+            <div class="dayNavHoverArea right">
+                <button class="dayNavButton" (click)="nextDay()"><p>></p></button>
+            </div>
+        </div>
+
+        <div class="todaysWeight">
+            <div class="currentDate">
+                <p id="currentDay" [className]="neighbourDayClass">{{this.todaysDate}}</p>
+            </div>
+            <app-weight-display [currentText]="getCurrentWeight()"></app-weight-display>
+            
+            <!-- <div class="weightAddPrompt">
+                <input type="number" class="currentWeight" placeholder="Your current weight..." [(ngModel)]="addWeightField">
+                <button class="addWeight" (click)="insertNewWeight()">Add Weight</button> 
+            </div> -->
+        </div>
+
+        <!-- <button class="addWeight" (click)="insertNewWeight()">Add Weight</button>  -->
+    }
+</div>
+<div class="infoArea">
+    <p class="chartLabel">Your weight timeline</p>
+    <app-line-chart [graphData]="weightGraphData"></app-line-chart>
+
+
+    <div class="footer">
+        <div>
+            <p>Made by Leyton Viner</p>
+            <p>MMXXIV</p>
+            <a href="https://github.com/LeytonV">
+                <img src="assets/github.png" alt="">
+            </a>
+        </div>
+    </div>
+</div>
+
+<app-settings [isOpen]="settingsOpen" (onClose)="closeSettings()"></app-settings>

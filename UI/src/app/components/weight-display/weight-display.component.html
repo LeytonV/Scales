@@ -1,0 +1,10 @@
+<div class="container">
+    <!-- hidden input field behind the scenes -->
+    <!-- <input id="weightInput" type="text">
+    <p id="weightDisplay">test <span id="unitLabel">pounds</span></p> -->
+    <input id="weightDisplay" type="number" name="" [(ngModel)]="currentText" (keyup)="onUpdate()" placeholder="No Weight Set.">
+    @if(currentText != null)
+    {
+        <p id="unitLabel">{{weightUnitName}}</p>
+    }
+</div>

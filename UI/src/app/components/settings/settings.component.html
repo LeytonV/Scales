@@ -1,0 +1,41 @@
+@if(isOpen)
+{
+    <div [className]="'settingsContainer'">
+        <div class="header">
+            <p class="headerLabel">Settings</p>
+            <p class="exitButton" (click)="onClose.emit()">+</p>
+        </div>
+        <div class="content">
+            <div class="categoryContainer">
+                <button [className]="'categoryButton' + settingsTabClass(0)" (click)="setSettingsTab(0)"><p>Account</p></button>
+                <button [className]="'categoryButton' + settingsTabClass(1)" (click)="setSettingsTab(1)"><p>Miscellaneous</p></button>
+            </div>
+            <div class="mainContainer">
+                <div>
+                    @if(settingsLoaded)
+                    {
+                        @if(settingsTab == 0)
+                        {
+                            <div class="settingContainer">
+                                <p class="settingLabel">Email:</p>
+                                <input class="settingControl" type="text" name="" id="" [(ngModel)]="email" placeholder="yourname@mail.com">
+                            </div>
+                            <div class="settingContainer">
+                                <p class="settingLabel">Preferred unit:</p>
+                                <select name="cars" id="cars" class="settingControl"[(ngModel)]="weightUnit">
+                                    @for (unit of getWeightUnits; track $index)
+                                    {
+                                        <option [value]="unit">{{weightUnitName(unit)}}</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                    }
+                </div>
+        
+                <button class="save" (click)="saveSettings()">Save</button>
+            </div>
+        </div>
+        
+    </div>
+}
