@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, Renderer2, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WeightUtility } from '../../classes/WeightUtility';
 import { SettingsService } from '../../services/settings.service';
@@ -18,35 +18,44 @@ export class WeightDisplayComponent
 
   }
   
-  @ViewChild('inputField') input: any;
+  @ViewChild('weightDisplay')
+  input!: ElementRef;
 
   @Input()
   currentText:string = ""
 
-  @Output()
-  onSubmit = new EventEmitter<number>();
+  @Input()
+  weightUnit:string = ""
 
-  onUpdate()
+  @Output()
+  onChange = new EventEmitter<number>();
+
+  @Output()
+  onRemove = new EventEmitter();
+
+  unfocusInput()
+  {
+    this.input.nativeElement.blur();
+  }
+
+  submitWeight()
   {
     if(this.currentText == null)
     {
-      this.currentText = "0";
+      this.onRemove.emit();
     }
-    console.log(this.currentText);
-  }
-
-  makeValueNumber(text:string):number
-  {
-    text = text.replace(/\D/g, '');
-    if(text.length == 0)
-      return -2;
     else
-      return Number(text);
+    {
+      this.onChange.emit(Number(this.currentText));
+    }
   }
 
-  get weightUnitName():string
+  onKeyUp(ev:KeyboardEvent)
   {
-    return WeightUtility.getPluralWeightName(this.settingsService.userSettings?.preferredWeightUnit);
+    if(ev.key == "Enter")
+    {
+      this.unfocusInput();
+    }
   }
 
 }

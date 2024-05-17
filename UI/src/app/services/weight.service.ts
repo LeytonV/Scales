@@ -3,6 +3,8 @@ import { Weight } from '../model/Weight';
 import { LoginService } from './login.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { DateConverter } from '../classes/DateConverter';
+import { AuthService } from './auth.service';
+import { SettingsService } from './settings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,14 +12,14 @@ import { DateConverter } from '../classes/DateConverter';
 export class WeightService {
 
   weights:Map<string, Weight> = new Map();
-  constructor(private httpClient:HttpClient, private loginService:LoginService) { }
+  constructor(private httpClient:HttpClient, private authService:AuthService) { }
 
 
-  //
+  
   fetchWeightsFromServer(onSucceed: (() => any) = () => {})
   {
     const requestOptions = {                                                                                                                                                                                 
-      headers: new HttpHeaders(this.loginService.headers)
+      headers: new HttpHeaders(this.authService.headers)
     };
 
     this.httpClient.get<Weight[]>("https://localhost:7010/UserWeight/GetAllWeights", requestOptions).subscribe(weights => 
@@ -27,7 +29,6 @@ export class WeightService {
         this.weights.set(DateConverter.DateToString(new Date(val.date)), val);
       });
 
-      console.log(this.weights);
       onSucceed();
     })
   }
@@ -57,13 +58,11 @@ export class WeightService {
     return this.weights.get(DateConverter.DateToString(date))!;
   }
 
-  addWeight(weight:number, date:Date):void
+  addWeight(weight:number, date:Date, onSucceed: (() => any) = () => {}):void
   {
     const requestOptions = {                                                                                                                                                                                 
-      headers: new HttpHeaders(this.loginService.headers)
+      headers: new HttpHeaders(this.authService.headers)
     };
-
-    console.log(DateConverter.DateToString(date));
 
     const requestParams = 
     {
@@ -76,6 +75,28 @@ export class WeightService {
       next: weight =>
       {
         this.weights.set(DateConverter.DateToString(new Date(weight.date)), weight);
+        onSucceed();
+      }
+    })
+  }
+
+  removeWeight(date:Date, onSucceed: (() => any) = () => {}):void
+  {
+    const requestOptions = {                                                                                                                                                                                 
+      headers: new HttpHeaders(this.authService.headers)
+    };
+
+    const requestParams = 
+    {
+      "Date": DateConverter.DateToString(date)
+    }
+
+    this.httpClient.post<number>("https://localhost:7010/UserWeight/RemoveWeightRecord", requestParams, requestOptions).subscribe(
+    {
+      next: num =>
+      {
+        this.weights.delete(DateConverter.DateToString(date));
+        onSucceed();
       }
     })
   }

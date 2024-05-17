@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-navbar',
@@ -9,7 +9,8 @@ import { Component, EventEmitter, Output } from '@angular/core';
 })
 export class NavbarComponent {
 
-
+  @Input()
+  public showSettings:boolean = false;
   @Output()
   onClickSettings = new EventEmitter();
 
@@ -17,7 +18,6 @@ export class NavbarComponent {
 
   pressSettings():void
   {
-    console.log("s");
     this.onClickSettings.emit();
   }
 

@@ -27,6 +27,7 @@ namespace Server.Controllers
 		/// <param name="date"></param>
 		/// <returns></returns>
 		[HttpGet("GetUserData")]
+		[Authorize]
 		public async Task<UserBasicDto> GetUserData()
 		{
 			MyUser user = await _userManager.GetUserAsync(HttpContext.User);
@@ -41,6 +42,7 @@ namespace Server.Controllers
 		/// <param name="date"></param>
 		/// <returns>A copy of the user, if succeeded</returns>
 		[HttpPost("UpdateUser")]
+		[Authorize]
 		public async Task<UserBasicDto> UpdateUser([FromBody]UserUpdateDto updateDto)
 		{
 			MyUser user = await _userManager.GetUserAsync(HttpContext.User);

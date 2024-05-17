@@ -35,12 +35,6 @@
     border-radius: 10px;
 }
 
-.settingsContainer.open
-{
-    
-}
-
-
 .content
 {
     display: grid;

@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { catchError } from 'rxjs';
 
@@ -11,13 +11,14 @@ import { WeightService } from '../../services/weight.service';
 import { DateConverter } from '../../classes/DateConverter';
 
 import { CanvasJSAngularChartsModule } from '@canvasjs/angular-charts';
-
-import { LineChartComponent } from '../../charts/line-chart/line-chart.component';
 import { WeightDisplayComponent } from '../../components/weight-display/weight-display.component';
 import { SettingsComponent } from '../../components/settings/settings.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { SettingsService } from '../../services/settings.service';
-import { WeightUtility } from '../../classes/WeightUtility';
+import { WeightUnits, WeightUtility } from '../../classes/WeightUtility';
+import { UserService } from '../../services/user.service';
+import { LinechartComponent } from '../../components/linechart/linechart.component';
+import { LoginComponent } from '../../components/login/login.component';
 
 @Component({
   selector: 'app-home',
@@ -25,26 +26,33 @@ import { WeightUtility } from '../../classes/WeightUtility';
   imports: [
     FormsModule,
     CanvasJSAngularChartsModule,
-    LineChartComponent,
     WeightDisplayComponent,
     SettingsComponent,
-    NavbarComponent
+    NavbarComponent,
+    LinechartComponent,
+    LoginComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent implements OnInit {
-
-  emailAddress:string = "";
-  password:string = "";
+export class HomeComponent implements OnInit
+{
 
   currentViewDate:Date = new Date();
 
-  currentWeightValue:number = -1;
-
   settingsOpen:boolean = false;
 
-  constructor(private loginService:LoginService, private weightService:WeightService, private settingsService:SettingsService)
+  weightDisplayText:string = "";
+  weightDisplayUnit:string = "";
+
+  //-----Line chart
+  lineChartWeights:number[] = [];
+
+  lineChartDates:string[] = []
+
+  currentDateLocaleString:string = "";
+
+  constructor(private userService:UserService, private loginService:LoginService, private weightService:WeightService, private settingsService:SettingsService)
   {
 
   }
@@ -56,51 +64,41 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void
   {
-    console.log("hi");
-    this.loginService.loginUser("test@mail.com", "Test12!", (login) => {this.onLogin(login)}, (fail) => {this.onLoginFail(fail)});
-  }
 
-  onClickLogin():void
-  {
-    this.loginService.loginUser(this.emailAddress, this.password, (login) => {this.onLogin(login)}, (fail) => {this.onLoginFail(fail)});
-  }
-
-  onLogin(response:LoginResponse):void
-  {
-    console.log("login success!");
-    this.weightService.fetchWeightsFromServer(() =>
+    this.userService.OnGotUserData.subscribe(() =>
     {
-      this.currentWeightValue = Number(this.getCurrentWeight());
+      this.OnUserDataRetrieved();
+
+      this.settingsService.OnSettingsUpdated.subscribe(() =>
+      {
+        this.updateVisuals();
+      })
+    })
+  }
+
+  OnUserDataRetrieved():void
+  {
+    this.updateVisuals();
+  }
+
+  updateVisuals():void
+  {
+    this.updateWeightDisplayText();
+    this.updateGraphWeightData();
+  }
+
+  OnSettingsChanged():void
+  {
+    this.updateVisuals();
+  }
+
+  insertNewWeight(weight:number):void
+  {
+    let pounds = WeightUtility.weightToPounds(weight, this.settingsService.userSettings.preferredWeightUnit);
+    this.weightService.addWeight(pounds, this.currentViewDate, () =>
+    {
+      this.updateGraphWeightData();
     });
-  }
-
-  onLoginFail(fail:HttpErrorResponse):void
-  {
-    console.log("login failed!");
-  }
-
-  onClickRegister():void
-  {
-    this.loginService.registerUser(this.emailAddress, this.password);
-  }
-
-  insertNewWeight():void
-  {
-    this.weightService.addWeight(Number(this.currentWeightValue), this.currentViewDate);
-  }
-
-  previousDay():void
-  {
-    this.currentViewDate.setDate(this.currentViewDate.getDate() - 1);
-    let weight = this.viewedWeight;
-    this.currentWeightValue = Number(this.getCurrentWeight());
-  }
-
-  nextDay():void
-  {
-    this.currentViewDate.setDate(this.currentViewDate.getDate() + 1);
-    let weight = this.viewedWeight;
-    this.currentWeightValue = Number(this.getCurrentWeight());
   }
 
   get viewedWeight():Weight
@@ -109,6 +107,11 @@ export class HomeComponent implements OnInit {
     return today;
   }
 
+  updateViewedDate(increment:number):void
+  {
+    this.currentViewDate.setDate(this.currentViewDate.getDate() + increment);
+    this.updateVisuals();
+  }
 
 
   get todaysDate():string
@@ -116,34 +119,44 @@ export class HomeComponent implements OnInit {
     return DateConverter.PrettyDate(this.currentViewDate);
   }
 
-  get weightGraphData(): [string[], string[]]
+  updateGraphWeightData()
   {
     let orderedWeights = this.weightService.orderedWeights;
 
-    let earliestDate:Date = new Date(orderedWeights[0].date);
-    let recentDate:Date = new Date(orderedWeights[orderedWeights.length - 1].date);
-    let msBetween:number = Math.abs(recentDate.getTime() - earliestDate.getTime())
-    let daysBetween = Math.ceil(msBetween / (1000 * 3600 * 24)) + 1;
-
-    let lastWeight = 0;
-    let weights:string[] = [];
-    let dates:string[] = [];
-    let iterationDate:Date = new Date();
-    for (let index = 0; index < daysBetween; index++)
+    if(orderedWeights.length > 0)
     {
-      iterationDate.setDate(earliestDate.getDate() + index);
+      let earliestDate:Date = new Date(orderedWeights[0].date);
+      let recentDate:Date = new Date(orderedWeights[orderedWeights.length - 1].date);
+      let msBetween:number = Math.abs(recentDate.getTime() - earliestDate.getTime())
+      let daysBetween = Math.ceil(msBetween / (1000 * 3600 * 24)) + 1;
 
-      dates.push(iterationDate.toLocaleDateString());
-      let weightEntry = this.weightService.getWeight(iterationDate);
-      if(weightEntry != null)
+      let lastWeight = 0;
+      let weights:number[] = [];
+      let dates:string[] = [];
+      let iterationDate:Date = new Date();
+      for (let index = 0; index < daysBetween; index++)
       {
-        lastWeight = weightEntry.weightInPounds;
+        iterationDate.setDate(earliestDate.getDate() + index);
+
+        dates.push(iterationDate.toLocaleDateString());
+        let weightEntry = this.weightService.getWeight(iterationDate);
+        if(weightEntry != null)
+        {
+          lastWeight = WeightUtility.calculateWeight(weightEntry.weightInPounds, this.settingsService.userSettings.preferredWeightUnit);
+        }
+
+        weights.push(lastWeight);
       }
 
-      weights.push(lastWeight.toString());
+      this.lineChartWeights = weights;
+      this.lineChartDates = dates;
     }
-
-    return [weights,dates];
+    else
+    {
+      this.lineChartWeights = [];
+      this.lineChartDates = [];
+    }
+    this.currentDateLocaleString = this.currentViewDate.toLocaleDateString();
   }
 
   get neighbourDayClass():string
@@ -165,21 +178,30 @@ export class HomeComponent implements OnInit {
     return "";
   }
 
-  getCurrentWeight():string
+  setSettingsMenuState(state:boolean)
+  {
+    this.settingsOpen = state;
+  }
+
+  removeWeight()
+  {
+    this.weightService.removeWeight(this.currentViewDate, () =>
+    {
+      this.updateGraphWeightData();
+    })
+  }
+
+  updateWeightDisplayText()
   {
     let weight = this.viewedWeight;
     let weightUnit = this.settingsService.userSettings?.preferredWeightUnit;
-    return weight == null ? "No Weight Set" : WeightUtility.calculateWeight(weight.weightInPounds, weightUnit).toFixed(3).toString().replace(/[.,]000$/, "");;
+    this.weightDisplayText = weight == null ? "No Weight Set" : WeightUtility.calculateWeight(weight.weightInPounds, weightUnit).toFixed(3).toString().replace(/[.,]000$/, "");
+    this.weightDisplayUnit = WeightUtility.getPluralWeightName(this.settingsService.userSettings?.preferredWeightUnit);
   }
 
-  openSettings()
+  get UserDataLoaded()
   {
-    this.settingsOpen = true;
-  }
-
-  closeSettings()
-  {
-    this.settingsOpen = false;
+    return this.userService.UserDataLoaded;
   }
 
 }

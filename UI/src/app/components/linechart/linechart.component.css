@@ -1,0 +1,6 @@
+.container
+{
+    margin: auto;
+    aspect-ratio: var(--aspect);
+    max-width: 800px;
+}

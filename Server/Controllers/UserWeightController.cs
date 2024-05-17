@@ -40,27 +40,33 @@ namespace Server.Controllers
 				Date = weightData.Date
 			};
 
+			Console.WriteLine(newRecord.Date);
+
+			//Remove any entries at the same date as the new entry
+			_context.WeightRecords.RemoveRange(_context.WeightRecords.Where(x => x.Date == newRecord.Date));
+
+			//Add the new record
 			_context.WeightRecords.Add(newRecord);
 			_context.SaveChanges();
 			return new WeightRecordDto(newRecord);
 		}
 
 		/// <summary>
-		/// Gets weights between two datetimes
-		/// </summary>
-		/// <param name="start"></param>
-		/// <param name="end"></param>
+		/// Removes all weight records at a specified date
+		/// </summary> 
+		/// <param name="weightInPounds"></param>
+		/// <param name="date"></param>
 		/// <returns></returns>
-		[HttpGet("GetWeights")]
-		[Authorize]
-		public async Task<IEnumerable<WeightRecordDto>> GetWeightRecords([FromQuery(Name = "from")]DateOnly start, [FromQuery(Name = "to")]DateOnly end)
+		[HttpPost("RemoveWeightRecord")]
+		public async Task<int> RemoveWeightRecord(WeightRecordRemoveDto removeDto)
 		{
+			Console.WriteLine(removeDto.Date);
 			MyUser user = await _userManager.GetUserAsync(HttpContext.User);
 
-			WeightRecord[] records = _context.WeightRecords.Where(x => x.UserId == user.Id && x.Date > start && x.Date < end)
-										.OrderBy(x => x.Date).ToArray();
-
-			return Array.ConvertAll(records, x => new WeightRecordDto(x));
+			IQueryable<WeightRecord> records = _context.WeightRecords.Where(x => x.UserId == user.Id && x.Date == removeDto.Date);
+			_context.WeightRecords.RemoveRange(records);
+			_context.SaveChanges();
+			return  records.Count();
 		}
 
 		/// <summary>

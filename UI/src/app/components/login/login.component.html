@@ -1,0 +1,16 @@
+<div class="loginScreen">
+    <div class="loginContainer">
+        <p class="loginPrompt">Log in to start tracking</p>
+        <input [(ngModel)]="emailAddress" type="email" name="" id="" placeholder="email">
+        <input [(ngModel)]="password" type="password" name="" id="" placeholder="password">
+
+        <div [className]="errorMessageClass">
+            <p>{{currentErrorMessage}}</p>
+            <button class="errorCloseButton" (click)="closeErrorMessage()"><p>+</p></button>
+        </div>
+        <div class="loginButtons">
+            <button (click)="Login()">Login</button>
+            <button class="register" (click)="Register()">Register</button>
+        </div>
+    </div>
+</div>

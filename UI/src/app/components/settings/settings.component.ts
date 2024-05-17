@@ -32,10 +32,10 @@ export class SettingsComponent implements OnChanges
 
   ngOnChanges()
   {
-    this.settingsService.fetchSettings(() =>
-    {
-      this.onSettingsRetrieved();
-    });
+    // this.settingsService.fetchSettings(() =>
+    // {
+    //   this.onSettingsRetrieved();
+    // });
   }
 
 

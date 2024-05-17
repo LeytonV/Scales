@@ -1,7 +1,10 @@
 <div class="navbarContainer">
     <p class="logo">Scales.</p>
-    <button class="navOption" (click)="pressSettings()">
-        <img class="navIcon" src="assets/settings-icon.png" alt="">
-    </button>
+    @if(showSettings)
+    {
+        <button class="navOption" (click)="pressSettings()">
+            <img class="navIcon" src="assets/settings-icon.png" alt="">
+        </button>
+    }
 </div>
 <div class="line"></div>
