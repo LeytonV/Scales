@@ -6,9 +6,7 @@ Scales is a prototype for a day-by-day weight loss tracker, built with a ASP.NET
 
 # How to run locally
 Prerequisites:
-- Visual Studio (Minimum version 20222, 17.8x or later) with the ASP.Net and web development workload (if you want to make code edits, that is.)
 - .NET 8 minimum
-- Visual Studio Code (if editing the frontend)
 - Angular v17 minimum, and Angular CLI (Can be installed [here](https://angular.io/guide/setup-local))
 - Docker (with the CLI)
 
