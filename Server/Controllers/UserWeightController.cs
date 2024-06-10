@@ -42,8 +42,8 @@ namespace Server.Controllers
 
 			Console.WriteLine(newRecord.Date);
 
-			//Remove any entries at the same date as the new entry
-			_context.WeightRecords.RemoveRange(_context.WeightRecords.Where(x => x.Date == newRecord.Date));
+			//Remove any entries at the same date as the new entry for that user
+			_context.WeightRecords.RemoveRange(_context.WeightRecords.Where(x => x.Date == newRecord.Date && x.User == user));
 
 			//Add the new record
 			_context.WeightRecords.Add(newRecord);
